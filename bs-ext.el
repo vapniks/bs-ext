@@ -205,18 +205,12 @@ will be used."
   (setq bs-ext-regexp regexp)
   (add-to-list 'bs-ext-regexp-history 'regexp))
 
-;; ("regexp" nil
-;;  (lambda
-;;    (buf)
-;;    (string-match aleblanc/bs-regexp
-;;                  (buffer-name buf)))
-;;  nil
-;;  (lambda
-;;    (buf)
-;;    (not
-;;     (string-match aleblanc/bs-regexp
-;;                   (buffer-name buf))))
-;;  nil)
+(defvar bs-ext-regexp-config '("regexp" nil
+                               (lambda (buf) (string-match bs-ext-regexp (buffer-name buf)))
+                               nil
+                               (lambda (buf) (not (string-match bs-ext-regexp (buffer-name buf))))
+                               nil)
+  "Buffer selection configuration for matching buffer names by regular expressions.")
 
 
 
@@ -224,6 +218,11 @@ will be used."
 (define-key bs-mode-map (kbd "<left>") 'bs-select-previous-configuration)
 (define-key bs-mode-map (kbd "<right>") 'bs-select-next-configuration)
 (define-key bs-mode-map (kbd "x") 'bs-delete)
+(define-key bs-mode-map (kbd "/") (lambda nil (interactive)
+                                    (call-interactively 'bs-ext-set-regexp)
+                                    (if (not (assoc "regexp" bs-configurations))
+                                             (add-to-list 'bs-configurations bs-ext-regexp-config))
+                                    (bs--show-with-configuration "regexp")))
 ;; Set the config keys
 (bs-ext-set-keys 'bs-ext-config-keys bs-ext-config-keys)
 
