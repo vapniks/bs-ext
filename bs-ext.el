@@ -215,8 +215,8 @@ will be used."
 ;; Set the mode-line
 (add-hook 'bs-mode-hook
           (lambda nil
-            (setq mode-line-format bs-ext-mode-line-format)
-            (setq header-line-format (if bs-ext-show-configs-header
+            (setq mode-line-format bs-ext-mode-line-format
+                  header-line-format (if bs-ext-show-configs-header
                                          (mapconcat (lambda (conf)
                                                       (let* ((name (car conf))
                                                              (key (car (rassoc name bs-ext-config-keys)))
