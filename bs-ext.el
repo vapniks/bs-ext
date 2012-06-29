@@ -39,7 +39,18 @@
 ;;; Commentary: 
 ;; 
 ;; Extensions to emacs buffer-selection library (bs.el)
-;; 
+;; This extension allows you to bind keys to buffer selection configurations (using `bs-ext-config-keys'),
+;; and optionally displays the configuration names and associated keybindings in the header line of the
+;; *buffer-selection* buffer.
+;; It also creates a new config called "regexp". When the "/" key is pressed the user is prompted for a regular
+;; expression and any buffers with matching names are added to the "regexp" config.
+;;
+;; The following new keybindings are defined:
+;;
+;; /        : prompt user for regular expression, place matching buffers in "regexp" config, and change to that config
+;; <left>   : select previous config using `bs-ext-select-previous-configuration'
+;; <right>  : select next config using `bs-select-next-configuration'
+;; x        : kill buffer on current line using `bs-delete'
 
 ;;; Installation:
 ;;
@@ -55,7 +66,8 @@
 
 ;;; Customize:
 ;;
-;; 
+;;  bs-ext-show-configs-header : whether or not to show the configs header line
+;;  bs-ext-config-keys : alist of keybindings and associated config names  
 ;;
 ;; All of the above can customized by:
 ;;      M-x customize-group RET bs RET
@@ -73,8 +85,8 @@
 ;;
 
 ;;; TODO
-;; Setup regexp configuration. 
-;; Create method for dynamically creating new configurations, adding buffers to them, and creating keys for them.
+;; 
+;; 
 
 ;;; Require
 (require 'bs)
@@ -110,60 +122,7 @@ in the *buffer-selection* buffer."
   :set 'bs-ext-set-keys
   :group 'bs)
 
-(defcustom bs-ext-show-configs-header t
-  "Whether or not to show the configs header line (as returned by `bs-ext-show-configs-header')."
-  :type 'boolean
-  :group 'bs)
-
-(defun bs-ext-show-configs-header ()
-  "Insert header line showing configuration names and corresponding keys."
-  (let* ((line (mapconcat (lambda (conf)
-                            (let* ((name (car conf))
-                                   (key (car (rassoc name bs-ext-config-keys)))
-                                   (item (if key (concat name "(" key ")") name)))
-                              (if (equal name bs-current-configuration)
-                                  (propertize item 'face font-lock-comment-face) ;(list :background "black" :foreground "red"))
-                                item)))
-                          bs-configurations " "))
-         (numlines (ceiling (/ (float (length line)) (window-width)))))
-    (insert " " line "\n")
-    (setq bs-header-lines-length (+ numlines 2))))
-
-;; We need to redefine this function (originally defined in bs.el) so that it also inserts the configs header line
-(defun bs-show-in-buffer (list)
-  "Display buffer list LIST in buffer *buffer-selection*.
-Select buffer *buffer-selection* and display buffers according to current
-configuration `bs-current-configuration'.  Set window height, fontify buffer
-and move point to current buffer."
-  (setq bs-current-list list)
-  (switch-to-buffer (get-buffer-create "*buffer-selection*"))
-  (bs-mode)
-  (let* ((inhibit-read-only t)
-	 (map-fun (lambda (entry)
-		    (length (buffer-name entry))))
-	 (max-length-of-names (apply 'max
-				     (cons 0 (mapcar map-fun list))))
-	 (name-entry-length (min bs-maximal-buffer-name-column
-				 (max bs-minimal-buffer-name-column
-				      max-length-of-names))))
-    (erase-buffer)
-    (setq bs--name-entry-length name-entry-length)
-    (bs--show-header)
-    (dolist (buffer list)
-      (bs--insert-one-entry buffer)
-      (insert "\n"))
-    (delete-char -1)
-    (bs--set-window-height)
-    (font-lock-fontify-buffer)
-    (goto-char (point-min))
-    (if bs-ext-show-configs-header
-        (bs-ext-show-configs-header)
-      (setq bs-header-lines-length 2))
-    (bs--goto-current-buffer)    
-    (bs-apply-sort-faces)
-    (set-buffer-modified-p nil)))
-
-(defun bs-prev-config-aux (start-name list)
+(defun bs-ext--prev-config-aux (start-name list)
   "Get the previous assoc before START-NAME in list LIST.
 Will return the last if START-NAME is at start."
   (let ((assocs list)
@@ -177,16 +136,16 @@ Will return the last if START-NAME is at start."
 	(nth (1- length) list)
       (nth (1- pos) list))))
 
-(defun bs-prev-config (name)
+(defun bs-ext-prev-config (name)
   "Return previous configuration with respect to configuration with name NAME."
-  (bs-prev-config-aux name bs-configurations))
+  (bs-ext-prev-config-aux name bs-configurations))
 
-(defun bs-select-previous-configuration (&optional start-name)
+(defun bs-ext-select-previous-configuration (&optional start-name)
   "Apply previous configuration to START-NAME and refresh buffer list.
 If START-NAME is nil the current configuration `bs-current-configuration'
 will be used."
   (interactive)
-  (let ((config (bs-prev-config (or start-name bs-current-configuration))))
+  (let ((config (bs-ext-prev-config (or start-name bs-current-configuration))))
     (bs-set-configuration (car config))
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)
@@ -212,10 +171,31 @@ will be used."
                                nil)
   "Buffer selection configuration for matching buffer names by regular expressions.")
 
-
+(defvar bs-ext-mode-line-format
+  '("%e" "%e"
+    #("-" 0 1
+      (help-echo "mouse-1: Select (drag to resize)\nmouse-2: Make current window occupy the whole frame\nmouse-3: Remove current window from display"))
+    mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification
+    #("   " 0 3
+      (help-echo "mouse-1: Select (drag to resize)\nmouse-2: Make current window occupy the whole frame\nmouse-3: Remove current window from display"))
+    mode-line-position
+    #("  " 0 2
+      (help-echo "mouse-1: Select (drag to resize)\nmouse-2: Make current window occupy the whole frame\nmouse-3: Remove current window from display"))
+;    mode-line-modes
+    "Press ? for help, q to quit"
+    (global-mode-string
+     ("" global-mode-string
+      #(" " 0 1
+        (help-echo "mouse-1: Select (drag to resize)\nmouse-2: Make current window occupy the whole frame\nmouse-3: Remove current window from display"))))
+    (:eval
+     (unless
+         (display-graphic-p)
+       #("-%-" 0 3
+         (help-echo "mouse-1: Select (drag to resize)\nmouse-2: Make current window occupy the whole frame\nmouse-3: Remove current window from display")))))
+  "The mode-line-format for the *buffer-selection* buffer.")
 
 ;; Set some new keys
-(define-key bs-mode-map (kbd "<left>") 'bs-select-previous-configuration)
+(define-key bs-mode-map (kbd "<left>") 'bs-ext-select-previous-configuration)
 (define-key bs-mode-map (kbd "<right>") 'bs-select-next-configuration)
 (define-key bs-mode-map (kbd "x") 'bs-delete)
 (define-key bs-mode-map (kbd "/") (lambda nil (interactive)
@@ -226,6 +206,25 @@ will be used."
 ;; Set the config keys
 (bs-ext-set-keys 'bs-ext-config-keys bs-ext-config-keys)
 
+
+(defcustom bs-ext-show-configs-header t
+  "Whether or not to show the configs header line."
+  :type 'boolean
+  :group 'bs)
+
+;; Set the mode-line
+(add-hook 'bs-mode-hook
+          (lambda nil
+            (setq mode-line-format bs-ext-mode-line-format)
+            (setq header-line-format (if bs-ext-show-configs-header
+                                         (mapconcat (lambda (conf)
+                                                      (let* ((name (car conf))
+                                                             (key (car (rassoc name bs-ext-config-keys)))
+                                                             (item (if key (concat name "(" key ")") name)))
+                                                        (if (equal name bs-current-configuration)
+                                                            (propertize item 'face font-lock-comment-face) 
+                                                          item)))
+                                                    bs-configurations " ")))))
 
 
 (provide 'bs-ext)
