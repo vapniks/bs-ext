@@ -122,7 +122,7 @@ in the *buffer-selection* buffer."
   :set 'bs-ext-set-keys
   :group 'bs)
 
-(defun bs-ext--prev-config-aux (start-name list)
+(defun bs-ext-prev-config-aux (start-name list)
   "Get the previous assoc before START-NAME in list LIST.
 Will return the last if START-NAME is at start."
   (let ((assocs list)
