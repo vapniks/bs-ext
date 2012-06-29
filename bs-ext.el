@@ -81,6 +81,15 @@
 
 ;;; Code:
 
+(defun bs-ext-set-keys (symb val)
+  "Set the key-bindings for the different configurations.
+This function is used for setting the keys after saving the customization buffer for `bs-ext-config-keys'.
+If called in other code then SYMB should be 'bs-ext-config-keys and val should be bs-ext-config-keys."
+  (loop for (key . name) in val
+        do (define-key bs-mode-map (read-kbd-macro key)
+             `(lambda nil (interactive) (bs--show-with-configuration ,name))))
+  (set-default symb val))
+
 (defcustom bs-ext-config-keys nil
   "Alist of (KEY . CONFIG) pairs.
 CONFIG is the name of a configuration listed in `bs-configurations', and KEY is a key that loads that config when pressed
@@ -100,15 +109,6 @@ in the *buffer-selection* buffer."
                                     :match (lambda (w config) (member config (mapcar 'car bs-configurations)))))
   :set 'bs-ext-set-keys
   :group 'bs)
-
-(defun bs-ext-set-keys (symb val)
-  "Set the key-bindings for the different configurations.
-This function is used for setting the keys after saving the customization buffer for `bs-ext-config-keys'.
-If called in other code then SYMB should be 'bs-ext-config-keys and val should be bs-ext-config-keys."
-  (loop for (key . name) in val
-        do (define-key bs-mode-map (read-kbd-macro key)
-             `(lambda nil (interactive) (bs--show-with-configuration ,name))))
-  (set-default symb val))
 
 (defcustom bs-ext-show-configs-header t
   "Whether or not to show the configs header line (as returned by `bs-ext-show-configs-header')."
