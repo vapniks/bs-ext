@@ -86,7 +86,8 @@
 
 ;;; TODO
 ;; 
-;; 
+;; Exclude empty groups? Allow manually adding buffers to a group.
+;; Create "fast" group that rebinds up/down arrow keys so that the buffers are show in the other window automatically?
 
 ;;; Require
 (require 'bs)
@@ -235,7 +236,9 @@ will be used."
                                          (mapconcat (lambda (conf)
                                                       (let* ((name (car conf))
                                                              (key (car (rassoc name bs-ext-config-keys)))
-                                                             (item (if key (concat name "(" key ")") name)))
+                                                             (item (if key (concat name "(" key ")")
+                                                                     (if (equal name "regexp") "regexp(/)"
+                                                                       name))))
                                                         (if (equal name bs-current-configuration)
                                                             (propertize item 'face font-lock-comment-face) 
                                                           item)))
