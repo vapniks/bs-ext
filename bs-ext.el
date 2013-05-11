@@ -311,5 +311,8 @@ to show always.
 
 (provide 'bs-ext)
 
+;; (magit-push)
+;; (yaoddmuse-post "EmacsWiki" "colour-region.el" (buffer-name) (buffer-string) "update")
+
 ;;; bs-ext.el ends here
 
