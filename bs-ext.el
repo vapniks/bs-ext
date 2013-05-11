@@ -38,6 +38,8 @@
 
 ;;; Commentary: 
 ;; 
+;; Bitcoin donations gratefully accepted: 13NyoPq3iusGsCtHNRT9xfA9jsqPjYtyyE
+;;
 ;; Extensions to emacs buffer-selection library (bs.el)
 ;; This extension allows you to bind keys to buffer selection configurations (using `bs-ext-config-keys'),
 ;; and optionally displays the configuration names and associated keybindings in the header line of the
