@@ -10,10 +10,10 @@ expression and any buffers with matching names are added to the "regexp" config.
 
 The following new keybindings are defined:
 
-/        : prompt user for regular expression, place matching buffers in "regexp" config, and change to that config
-<left>   : select previous config using `bs-ext-select-previous-configuration'
-<right>  : select next config using `bs-ext-select-next-configuration'
-x        : kill buffer on current line using `bs-delete'
+- /        : prompt user for regular expression, place matching buffers in "regexp" config, and change to that config
+- <left>   : select previous config using `bs-ext-select-previous-configuration'
+- <right>  : select next config using `bs-ext-select-next-configuration'
+- x        : kill buffer on current line using `bs-delete'
 
 Also if you have color-moccur installed you can use M-O to find regexp matches in marked buffers.
 
