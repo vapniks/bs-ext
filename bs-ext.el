@@ -6,7 +6,7 @@
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Copyleft (Ↄ) 2012, Joe Bloggs, all rites reversed.
 ;; Created: 2012-06-28 14:23:56
-;; Version: 0.1
+;; Version: 0.2
 ;; Last-Updated: 2012-06-28 14:23:56
 ;;           By: Joe Bloggs
 ;; URL: http://www.emacswiki.org/emacs/download/bs-ext.el
