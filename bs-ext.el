@@ -44,12 +44,16 @@
 ;; This extension allows you to bind keys to buffer selection configurations (using `bs-ext-config-keys'),
 ;; and optionally displays the configuration names and associated keybindings in the header line of the
 ;; *buffer-selection* buffer.
-;; It also creates a new config called "regexp". When the "/" key is pressed the user is prompted for a regular
-;; expression and any buffers with matching names are added to the "regexp" config.
+;; It also creates a new config called "regexp". When the "/" key is pressed the user is prompted first for
+;; a field to filter on, and then for a regular expression or number to use as the filter. Any buffers in the
+;; currently displayed config that match the filter on the specified field will be placed in the "regexp" config
+;; which will then be displayed. If the user decides to filter on the "Size" field then a number must be entered,
+;; and all buffers with size greater than that number will be selected. If a prefix arg is used, all buffers with
+;; size smaller than the number will be selected. You can apply successive filters to narrow down the list.
 ;;
 ;; The following new keybindings are defined:
 ;;
-;; /        : prompt user for regular expression, place matching buffers in "regexp" config, and change to that config
+;; /        : prompt user for a field and regexp/value to filter buffers with, placing matching buffers in "regexp" config
 ;; <left>   : select previous config using `bs-ext-select-previous-configuration'
 ;; <right>  : select next config using `bs-ext-select-next-configuration'
 ;; x        : kill buffer on current line using `bs-delete'
@@ -176,16 +180,36 @@ will be used."
 (defvar bs-ext-regexp-history '()
   "History list for use in aleblanc/bs-set-regexp.")
 
-(defun bs-ext-set-regexp (regexp)
+(defvar bs-ext-regexp-field 'name
+  "What field `bs-ext-regexp' will be matched on.")
+
+(defun bs-ext-set-regexp (field regexp)
   "Set the value of bs-ext-regexp - a regexp to match buffer names for the regexp configuration."
-  (interactive (list (read-string "Regexp to match buffer names: " nil 'bs-ext-regexp-history)))
-  (setq bs-ext-regexp regexp)
+  (interactive (list (read-key "Press key to indicate field to match on: b/n = buffer/name, s = size, m = mode, f = file")
+                     (read-string "Regexp/value: " nil 'bs-ext-regexp-history)))
+  (setq bs-ext-regexp-field field bs-ext-regexp regexp)
   (add-to-list 'bs-ext-regexp-history 'regexp))
 
+(defun bs-ext-regexp-filter (buf)
+  (let* ((func (case bs-ext-regexp-field
+                 (109 'bs--get-mode-name)
+                 (102 'bs--get-file-name)
+                 (115 'bs--get-size-string)
+                 (t 'bs--get-name)))
+         (value (with-current-buffer buf
+                  (and (member buf bs-current-list)
+                       (funcall func buf bs-current-list)))))
+    (if value
+        (if (eql bs-ext-regexp-field 115)
+            (funcall (if current-prefix-arg '< '>)
+                     (string-to-number value)
+                     (string-to-number bs-ext-regexp))
+          (string-match bs-ext-regexp value)))))
+
 (defvar bs-ext-regexp-config '("regexp" nil
-                               (lambda (buf) (string-match bs-ext-regexp (buffer-name buf)))
+                               bs-ext-regexp-filter
                                nil
-                               (lambda (buf) (not (string-match bs-ext-regexp (buffer-name buf))))
+                               (lambda (buf) (not (bs-ext-regexp-filter buf)))
                                nil)
   "Buffer selection configuration for matching buffer names by regular expressions.")
 
@@ -314,7 +338,7 @@ to show always.
 (provide 'bs-ext)
 
 ;; (magit-push)
-;; (yaoddmuse-post "EmacsWiki" "colour-region.el" (buffer-name) (buffer-string) "update")
+;; (yaoddmuse-post "EmacsWiki" "bs-ext.el" (buffer-name) (buffer-string) "update")
 
 ;;; bs-ext.el ends here
 
