@@ -249,6 +249,7 @@ will be used."
 (define-key bs-mode-map (kbd "/") 'bs-ext-limit-by-regexp)
 (define-key bs-mode-map (kbd "R") 'bs-ext-rename)
 (define-key bs-mode-map (kbd "U") 'bs-ext-unmark-all)
+(define-key bs-mode-map (kbd "W") 'bs-ext-write)
 (define-key bs-mode-map (kbd ":") 'bs-ext-apply-function)
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
 (if (featurep 'color-moccur)
@@ -346,7 +347,8 @@ to show always.
 
 (defun bs-ext-apply-function (fn)
   "Apply function FN to marked buffers or buffer on current line.
-The function FN will be called with `funcall' within each buffer."
+The function FN will be called with `funcall' within each buffer.
+This can be used for changing the major-mode of buffers for example."
   (interactive (list (read-minibuffer "Function: ")))
   (let ((current (bs--current-buffer))
 	(inhibit-read-only t))
@@ -361,7 +363,7 @@ The function FN will be called with `funcall' within each buffer."
   "Rename marked buffers or buffer on current line.
 Name of buffer is matched with REGEXP and renamed to NEWNAME which
 may refer to parenthesised subexpressions in REGEXP (see `replace-match').
-If regexp is left as an empty string then it will match the whole buffer
+If REGEXP is left as an empty string then it will match the whole buffer
 name with no subexpressions.
 If a prefix argument is used or LITERAL is non-nil and there is only 1 buffer
 to be renamed, then NEWNAME will be treated literally and no substitution of
@@ -379,6 +381,24 @@ subexpressions will take place."
 	(match-substitute-replacement newname nil
 				      (and literal (< (length bs--marked-buffers) 2))
 				      bufname))))))
+
+(defun bs-ext-write (regexp filename)
+  "Write buffer on current line or marked buffers to files.
+Name of buffer is matched with REGEXP and written to FILENAME which
+may refer to parenthesised subexpressions in REGEXP (see `replace-match').
+If REGEXP is left as an empty string then it will match the whole buffer
+name with no subexpressions."
+  (interactive (list (read-regexp "regexp matching old name (default .*)")
+		     (read-regexp (if (and current-prefix-arg
+					   (< (length bs--marked-buffers) 2)) "Filename"
+				    "Filename (\\& = whole match, \\N = Nth subexpression)"))
+		     current-prefix-arg))
+  (bs-ext-apply-function
+   (lambda nil
+     (let ((bufname (buffer-name)))
+       (string-match regexp bufname)
+       (write-file
+	(match-substitute-replacement filename nil nil bufname))))))
 
 (provide 'bs-ext)
 
