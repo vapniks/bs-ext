@@ -247,6 +247,9 @@ will be used."
 (define-key bs-mode-map (kbd "<right>") 'bs-ext-select-next-configuration)
 (define-key bs-mode-map (kbd "x") 'bs-delete)
 (define-key bs-mode-map (kbd "/") 'bs-ext-limit-by-regexp)
+(define-key bs-mode-map (kbd "R") 'bs-ext-rename)
+(define-key bs-mode-map (kbd "U") 'bs-ext-unmark-all)
+(define-key bs-mode-map (kbd ":") 'bs-ext-apply-function)
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
 (if (featurep 'color-moccur)
     (define-key bs-mode-map (kbd "M-O") 'bs-ext-moccur-marked-buffers))
@@ -335,16 +338,23 @@ to show always.
     (bs-kill)
     (switch-to-buffer "*Occur*")))
 
+(defun bs-ext-unmark-all nil
+  "Unmark all marked buffers."
+  (interactive)
+  (setq bs--marked-buffers nil)
+  (bs--redisplay t))
+
 (defun bs-ext-apply-function (fn)
   "Apply function FN to marked buffers or buffer on current line.
-The function FN should take a buffer object as it's only argument."
+The function FN will be called with `funcall' within each buffer."
   (interactive (list (read-minibuffer "Function: ")))
   (let ((current (bs--current-buffer))
 	(inhibit-read-only t))
-    (if bs--marked-buffers
-	(dolist (buf bs--marked-buffers)
-	  (funcall fn buf))
-      (funcall fn current))
+    (if (y-or-n-p "Sure you want to apply this function to the marked buffers")
+	(if bs--marked-buffers
+	    (dolist (buf bs--marked-buffers)
+	      (with-current-buffer buf (funcall fn)))
+	  (with-current-buffer current (funcall fn))))
     (bs--redisplay t)))
 
 (defun bs-ext-rename (regexp newname &optional literal)
@@ -362,14 +372,13 @@ subexpressions will take place."
 				    "New name (\\& = whole match, \\N = Nth subexpression)"))
 		     current-prefix-arg))
   (bs-ext-apply-function
-   (lambda (buf)
-     (let ((bufname (buffer-name buf)))
+   (lambda nil
+     (let ((bufname (buffer-name)))
        (string-match regexp bufname)
-       (with-current-buffer buf
-	 (rename-buffer
-	  (match-substitute-replacement newname nil
-					(and literal (< (length bs--marked-buffers) 2))
-					bufname)))))))
+       (rename-buffer
+	(match-substitute-replacement newname nil
+				      (and literal (< (length bs--marked-buffers) 2))
+				      bufname))))))
 
 (provide 'bs-ext)
 
