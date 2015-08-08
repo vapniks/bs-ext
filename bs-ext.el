@@ -344,7 +344,32 @@ The function FN should take a buffer object as it's only argument."
     (if bs--marked-buffers
 	(dolist (buf bs--marked-buffers)
 	  (funcall fn buf))
-      (funcall fn current))))
+      (funcall fn current))
+    (bs--redisplay t)))
+
+(defun bs-ext-rename (regexp newname &optional literal)
+  "Rename marked buffers or buffer on current line.
+Name of buffer is matched with REGEXP and renamed to NEWNAME which
+may refer to parenthesised subexpressions in REGEXP (see `replace-match').
+If regexp is left as an empty string then it will match the whole buffer
+name with no subexpressions.
+If a prefix argument is used or LITERAL is non-nil and there is only 1 buffer
+to be renamed, then NEWNAME will be treated literally and no substitution of
+subexpressions will take place."
+  (interactive (list (read-regexp "regexp matching old name (default .*)")
+		     (read-regexp (if (and current-prefix-arg
+					   (< (length bs--marked-buffers) 2)) "New name"
+				    "New name (\\& = whole match, \\N = Nth subexpression)"))
+		     current-prefix-arg))
+  (bs-ext-apply-function
+   (lambda (buf)
+     (let ((bufname (buffer-name buf)))
+       (string-match regexp bufname)
+       (with-current-buffer buf
+	 (rename-buffer
+	  (match-substitute-replacement newname nil
+					(and literal (< (length bs--marked-buffers) 2))
+					bufname)))))))
 
 (provide 'bs-ext)
 
