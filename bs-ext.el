@@ -335,6 +335,17 @@ to show always.
     (bs-kill)
     (switch-to-buffer "*Occur*")))
 
+(defun bs-ext-apply-function (fn)
+  "Apply function FN to marked buffers or buffer on current line.
+The function FN should take a buffer object as it's only argument."
+  (interactive (list (read-minibuffer "Function: ")))
+  (let ((current (bs--current-buffer))
+	(inhibit-read-only t))
+    (if bs--marked-buffers
+	(dolist (buf bs--marked-buffers)
+	  (funcall fn buf))
+      (funcall fn current))))
+
 (provide 'bs-ext)
 
 ;; (magit-push)
