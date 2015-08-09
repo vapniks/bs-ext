@@ -391,8 +391,7 @@ name with no subexpressions."
   (interactive (list (read-regexp "regexp matching old name (default .*)")
 		     (read-regexp (if (and current-prefix-arg
 					   (< (length bs--marked-buffers) 2)) "Filename"
-				    "Filename (\\& = whole match, \\N = Nth subexpression)"))
-		     current-prefix-arg))
+				    "Filename (\\& = whole match, \\N = Nth subexpression)"))))
   (bs-ext-apply-function
    (lambda nil
      (let ((bufname (buffer-name)))
