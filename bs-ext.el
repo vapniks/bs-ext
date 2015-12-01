@@ -252,6 +252,8 @@ will be used."
 (define-key bs-mode-map (kbd "W") 'bs-ext-write)
 (define-key bs-mode-map (kbd ":") 'bs-ext-apply-function)
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
+(define-key bs-mode-map (kbd "<") 'beginning-of-buffer)
+(define-key bs-mode-map (kbd ">") 'end-of-buffer)
 (if (featurep 'color-moccur)
     (define-key bs-mode-map (kbd "M-O") 'bs-ext-moccur-marked-buffers))
 ;; Set the config keys
