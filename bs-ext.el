@@ -241,7 +241,7 @@ will be used."
   (if (not (assoc "regexp" bs-configurations))
       (add-to-list 'bs-configurations bs-ext-regexp-config))
   (bs--show-with-configuration "regexp"))
-  
+
 ;; Set some new keys
 (define-key bs-mode-map (kbd "<left>") 'bs-ext-select-previous-configuration)
 (define-key bs-mode-map (kbd "<right>") 'bs-ext-select-next-configuration)
@@ -258,7 +258,6 @@ will be used."
     (define-key bs-mode-map (kbd "M-O") 'bs-ext-moccur-marked-buffers))
 ;; Set the config keys
 (bs-ext-set-keys 'bs-ext-config-keys bs-ext-config-keys)
-
 
 (defcustom bs-ext-show-configs-header t
   "Whether or not to show the configs header line."
@@ -400,6 +399,15 @@ name with no subexpressions."
        (string-match regexp bufname)
        (write-file
 	(match-substitute-replacement filename nil nil bufname))))))
+
+(defun bs-ext-delete ()
+  "Kill marked buffers or buffer on current line."
+  (interactive)
+  (if (not bs--marked-buffers)
+      (bs-delete)
+    (goto-char (point-min))
+    (while (re-search-forward "^>")
+      (bs-delete))))
 
 (provide 'bs-ext)
 
