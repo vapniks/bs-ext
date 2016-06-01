@@ -245,7 +245,7 @@ will be used."
 ;; Set some new keys
 (define-key bs-mode-map (kbd "<left>") 'bs-ext-select-previous-configuration)
 (define-key bs-mode-map (kbd "<right>") 'bs-ext-select-next-configuration)
-(define-key bs-mode-map (kbd "x") 'bs-delete)
+(define-key bs-mode-map (kbd "x") 'bs-ext-delete)
 (define-key bs-mode-map (kbd "/") 'bs-ext-limit-by-regexp)
 (define-key bs-mode-map (kbd "R") 'bs-ext-rename)
 (define-key bs-mode-map (kbd "U") 'bs-ext-unmark-all)
