@@ -405,9 +405,12 @@ name with no subexpressions."
   (interactive)
   (if (not bs--marked-buffers)
       (bs-delete)
-    (goto-char (point-min))
-    (while (re-search-forward "^>")
-      (bs-delete))))
+    (unless (not (y-or-n-p
+		  (format "Delete %d marked buffers?"
+			  (length bs--marked-buffers))))
+      (goto-char (point-min))
+      (while (re-search-forward "^>")
+	(bs-delete)))))
 
 (provide 'bs-ext)
 
