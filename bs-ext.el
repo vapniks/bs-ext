@@ -256,6 +256,9 @@ will be used."
 (define-key bs-mode-map (kbd "/") 'bs-ext-limit-by-regexp)
 (define-key bs-mode-map (kbd "R") 'bs-ext-rename)
 (define-key bs-mode-map (kbd "U") 'bs-ext-unmark-all)
+(define-key bs-mode-map (kbd "M") 'bs-ext-mark-all)
+(define-key bs-mode-map (kbd "+") 'bs-toggle-current-to-show)
+(define-key bs-mode-map (kbd "=") 'bs-toggle-current-to-show)
 (define-key bs-mode-map (kbd "W") 'bs-ext-write)
 (define-key bs-mode-map (kbd ":") 'bs-ext-apply-function)
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
@@ -353,6 +356,12 @@ to show always.
   (setq bs--marked-buffers nil)
   (bs--redisplay t))
 
+(defun bs-ext-mark-all nil
+  "Mark all unmarked buffers."
+  (interactive)
+  (setq bs--marked-buffers bs-current-list)
+  (bs--redisplay t))
+
 (defun bs-ext-apply-function (fn)
   "Apply function FN to marked buffers or buffer on current line.
 The function FN will be called with `funcall' within each buffer.
@@ -413,11 +422,12 @@ name with no subexpressions."
   (if (not bs--marked-buffers)
       (bs-delete)
     (unless (not (y-or-n-p
-		  (format "Delete %d marked buffers?"
+		  (format "Delete %d marked buffers? "
 			  (length bs--marked-buffers))))
       (goto-char (point-min))
-      (while (re-search-forward "^>")
-	(bs-delete)))))
+      (while (re-search-forward "^>" nil t)
+	(bs-delete))
+      (setq bs--marked-buffers nil))))
 
 (provide 'bs-ext)
 
