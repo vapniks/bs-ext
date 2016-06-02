@@ -185,26 +185,33 @@ will be used."
 
 (defun bs-ext-set-regexp (field regexp)
   "Set the value of bs-ext-regexp - a regexp to match buffer names for the regexp configuration."
-  (interactive (list (read-key "Press key to indicate field to match on: b/n = buffer/name, s = size, m = mode, f = file")
-                     (read-string "Regexp/value: " nil 'bs-ext-regexp-history)))
+  (interactive (let* ((f (read-key "Press key to indicate filter type: b/n = buffer name, f = filename, s = size, m = mode, > = marked, % = readonly, * = modified"))
+		      (r (if (not (memq f '(?> ?% ?*))) 
+			     (read-string "Regexp/value: " nil 'bs-ext-regexp-history))))
+		 (list f r)))
   (setq bs-ext-regexp-field field bs-ext-regexp regexp)
   (add-to-list 'bs-ext-regexp-history 'regexp))
 
 (defun bs-ext-regexp-filter (buf)
   (let* ((func (case bs-ext-regexp-field
-                 (109 'bs--get-mode-name)
-                 (102 'bs--get-file-name)
-                 (115 'bs--get-size-string)
+                 (?m 'bs--get-mode-name)
+                 (?f 'bs--get-file-name)
+                 (?s 'bs--get-size-string)
+		 (?> (lambda (buf lst)
+		       (member buf bs--marked-buffers)))
+		 (?% (lambda (buf lst) buffer-read-only))
+		 (?* (lambda (buf lst) (buffer-modified-p)))
                  (t 'bs--get-name)))
          (value (with-current-buffer buf
                   (and (member buf bs-current-list)
                        (funcall func buf bs-current-list)))))
-    (if value
-        (if (eql bs-ext-regexp-field 115)
-            (funcall (if current-prefix-arg '< '>)
-                     (string-to-number value)
-                     (string-to-number bs-ext-regexp))
-          (string-match bs-ext-regexp value)))))
+    (if (stringp value)
+	(if (eql bs-ext-regexp-field 115)
+	    (funcall (if current-prefix-arg '< '>)
+		     (string-to-number value)
+		     (string-to-number bs-ext-regexp))
+	  (string-match bs-ext-regexp value))
+      value)))
 
 (defvar bs-ext-regexp-config '("regexp" nil
                                bs-ext-regexp-filter
