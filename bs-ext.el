@@ -56,7 +56,10 @@
 ;; /        : prompt user for a field and regexp/value to filter buffers with, placing matching buffers in "regexp" config
 ;; <left>   : select previous config using `bs-ext-select-previous-configuration'
 ;; <right>  : select next config using `bs-ext-select-next-configuration'
-;; x        : kill buffer on current line using `bs-delete'
+;; x        : kill marked buffers or buffer on current line using `bs-delete'
+;; M        : mark all buffers 
+;; U        : unmark all buffers
+;; =        : toggle status of showing flag for buffer in current line
 ;;
 ;; Also if you have color-moccur installed you can use M-O to find regexp matches in marked buffers.
 
