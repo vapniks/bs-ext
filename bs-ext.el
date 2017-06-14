@@ -267,6 +267,7 @@ will be used."
 (define-key bs-mode-map (kbd "?") 'bs-ext-help)
 (define-key bs-mode-map (kbd "<") 'beginning-of-buffer)
 (define-key bs-mode-map (kbd ">") 'end-of-buffer)
+(define-key bs-mode-map (kbd "C-x C-s") 'bs-ext-save)
 (if (featurep 'color-moccur)
     (define-key bs-mode-map (kbd "M-O") 'bs-ext-moccur-marked-buffers))
 ;; Set the config keys
@@ -368,11 +369,11 @@ to show always.
 (defun bs-ext-apply-function (fn)
   "Apply function FN to marked buffers or buffer on current line.
 The function FN will be called with `funcall' within each buffer.
-This can be used for changing the major-mode of buffers for example."
+This can be used for changing the `major-mode' of buffers for example."
   (interactive (list (read-minibuffer "Function: ")))
   (let ((current (bs--current-buffer))
 	(inhibit-read-only t))
-    (if (y-or-n-p "Sure you want to apply this function to the marked buffers")
+    (if (y-or-n-p (format "Apply \"%S\" to the marked buffers? " fn))
 	(if bs--marked-buffers
 	    (dolist (buf bs--marked-buffers)
 	      (with-current-buffer buf (funcall fn)))
@@ -431,6 +432,11 @@ name with no subexpressions."
       (while (re-search-forward "^>" nil t)
 	(bs-delete))
       (setq bs--marked-buffers nil))))
+
+(defun bs-ext-save ()
+  "Save marked buffers or buffer on current line."
+  (interactive)
+  (bs-ext-apply-function 'save-buffer))
 
 (provide 'bs-ext)
 
