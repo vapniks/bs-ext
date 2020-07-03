@@ -278,21 +278,23 @@ will be used."
   :type 'boolean
   :group 'bs)
 
+(defun bs-ext-mode-line nil
+  "Set the `mode-line-format' for `bs-mode'."
+  (setq mode-line-format bs-ext-mode-line-format
+	header-line-format (if bs-ext-show-configs-header
+			       (mapconcat (lambda (conf)
+					    (let* ((name (car conf))
+						   (key (car (rassoc name bs-ext-config-keys)))
+						   (item (if key (concat name "(" key ")")
+							   (if (equal name "regexp") "regexp(/)"
+							     name))))
+					      (if (equal name bs-current-configuration)
+						  (propertize item 'face font-lock-comment-face)
+						item)))
+					  bs-configurations " "))))
+
 ;; Set the mode-line
-(add-hook 'bs-mode-hook
-          (lambda nil
-            (setq mode-line-format bs-ext-mode-line-format
-                  header-line-format (if bs-ext-show-configs-header
-                                         (mapconcat (lambda (conf)
-                                                      (let* ((name (car conf))
-                                                             (key (car (rassoc name bs-ext-config-keys)))
-                                                             (item (if key (concat name "(" key ")")
-                                                                     (if (equal name "regexp") "regexp(/)"
-                                                                       name))))
-                                                        (if (equal name bs-current-configuration)
-                                                            (propertize item 'face font-lock-comment-face) 
-                                                          item)))
-                                                    bs-configurations " ")))))
+(add-hook 'bs-mode-hook 'bs-ext-mode-line)
 
 ;; This variable is used purely for the documentation string.
 (defvar bs-ext-help nil
