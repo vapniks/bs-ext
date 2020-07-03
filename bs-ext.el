@@ -135,19 +135,19 @@ in the *buffer-selection* buffer."
   :set 'bs-ext-set-keys
   :group 'bs)
 
-(defun bs-ext-prev-config-aux (start-name list)
-  "Get the previous assoc before START-NAME in list LIST.
+(defun bs-ext-prev-config-aux (start-name lst)
+  "Get the previous assoc before START-NAME in list LST.
 Will return the last if START-NAME is at start."
-  (let ((assocs list)
-	(l (length list))
+  (let ((assocs lst)
+	(l (length lst))
 	pos)
     (while (and assocs (not pos))
       (when (string= (caar assocs) start-name)
 	(setq pos (- l (length assocs))))
       (setq assocs (cdr assocs)))
     (if (eq pos 0)
-	(nth (1- l) list)
-      (nth (1- pos) list))))
+	(nth (1- l) lst)
+      (nth (1- pos) lst))))
 
 (defun bs-ext-prev-config (name)
   "Return previous configuration with respect to configuration with name NAME."
