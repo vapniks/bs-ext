@@ -139,14 +139,14 @@ in the *buffer-selection* buffer."
   "Get the previous assoc before START-NAME in list LIST.
 Will return the last if START-NAME is at start."
   (let ((assocs list)
-	(length (length list))
+	(l (length list))
 	pos)
     (while (and assocs (not pos))
-      (when (string= (car (car assocs)) start-name)
-	(setq pos (- length (length assocs))))
+      (when (string= (caar assocs) start-name)
+	(setq pos (- l (length assocs))))
       (setq assocs (cdr assocs)))
     (if (eq pos 0)
-	(nth (1- length) list)
+	(nth (1- l) list)
       (nth (1- pos) list))))
 
 (defun bs-ext-prev-config (name)
